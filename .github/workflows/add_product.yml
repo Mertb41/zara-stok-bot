@@ -1,0 +1,55 @@
+name: Zara Ürün Ekle
+
+on:
+  workflow_dispatch:
+    inputs:
+      product_url:
+        description: "Zara ürün linki"
+        required: true
+
+      product_size:
+        description: "Beden (XS,S,M)"
+        required: true
+
+      product_name:
+        description: "Ürün adı"
+        required: false
+
+
+jobs:
+
+  add-product:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+
+      - name: Kodları indir
+        uses: actions/checkout@v5
+
+
+      - name: Python kurulumu
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+
+      - name: Ürünü ekle
+        env:
+          PRODUCT_URL: ${{ github.event.inputs.product_url }}
+          PRODUCT_SIZE: ${{ github.event.inputs.product_size }}
+          PRODUCT_NAME: ${{ github.event.inputs.product_name }}
+        run: |
+          python urun_ekle.py
+
+
+      - name: Kaydet
+        run: |
+          git config --global user.name "zara-bot"
+          git config --global user.email "bot@example.com"
+          git add products.json
+          git commit -m "Yeni Zara ürünü eklendi" || echo "Değişiklik yok"
+          git push
