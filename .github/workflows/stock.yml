@@ -1,15 +1,22 @@
-name: Zara Stok Kontrol
+name: Zara Bot Sistemi
 
 on:
   schedule:
     - cron: "*/5 * * * *"
+
   workflow_dispatch:
 
 jobs:
-  check-stock:
+
+  stock-control:
+
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
+
       - name: Kodları indir
         uses: actions/checkout@v5
 
@@ -22,9 +29,35 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Zara stok kontrolü
+      - name: Zara stok kontrol
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: |
           python monitor.py
+
+
+  liste-gonder:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Kodları indir
+        uses: actions/checkout@v5
+
+      - name: Python kurulumu
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Paketleri yükle
+        run: |
+          pip install -r requirements.txt
+
+      - name: Listeyi Telegram'a gönder
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: |
+          python liste_gonder.py
