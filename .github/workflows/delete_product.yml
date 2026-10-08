@@ -1,0 +1,49 @@
+name: Zara Ürün Sil
+
+on:
+  workflow_dispatch:
+    inputs:
+
+      product_index:
+        description: "Silinecek ürün numarası"
+        required: true
+
+
+jobs:
+
+  delete-product:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+
+    steps:
+
+      - name: Kodları indir
+        uses: actions/checkout@v5
+
+
+      - name: Python kurulumu
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+
+      - name: Ürünü sil
+        env:
+          PRODUCT_INDEX: ${{ github.event.inputs.product_index }}
+
+        run: |
+          python urun_sil.py
+
+
+      - name: Kaydet
+
+        run: |
+          git config --global user.name "zara-bot"
+          git config --global user.email "bot@example.com"
+          git add products.json
+          git commit -m "Zara ürünü silindi" || echo "Değişiklik yok"
+          git push
