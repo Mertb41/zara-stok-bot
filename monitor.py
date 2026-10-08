@@ -10,7 +10,7 @@ BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
 
 HISTORY_FILE = "stock_history.json"
-
+STATE_FILE = "stock_state.json"
 
 HEADERS = {
     "User-Agent": (
@@ -20,7 +20,29 @@ HEADERS = {
     "Accept-Language": "tr-TR,tr;q=0.9"
 }
 
+durumlar = durum_oku()
 
+anahtar = (
+    urun["name"]
+    + "_"
+    + beden
+)
+
+
+daha_once_var = durumlar.get(
+    anahtar,
+    False
+)
+
+
+if not daha_once_var:
+
+    telegram_gonder(mesaj)
+
+
+durumlar[anahtar] = True
+
+durum_yaz(durumlar)
 def telegram_gonder(mesaj):
 
     if not BOT_TOKEN or not CHAT_ID:
@@ -66,7 +88,33 @@ def gecmis_kaydet(urun, beden, durum):
 
 
     gecmis = gecmis[-200:]
+def durum_oku():
 
+    try:
+        with open(
+            STATE_FILE,
+            "r",
+            encoding="utf-8"
+        ) as f:
+            return json.load(f)
+
+    except:
+        return {}
+
+
+def durum_yaz(durum):
+
+    with open(
+        STATE_FILE,
+        "w",
+        encoding="utf-8"
+    ) as f:
+        json.dump(
+            durum,
+            f,
+            ensure_ascii=False,
+            indent=2
+        )
 
     with open(
         HISTORY_FILE,
@@ -181,7 +229,17 @@ def main():
                     urun["name"],
                     beden
                 )
+durumlar = durum_oku()
 
+anahtar = (
+    urun["name"]
+    + "_"
+    + beden
+)
+
+durumlar[anahtar] = False
+
+durum_yaz(durumlar)
 
 if __name__ == "__main__":
     main()
