@@ -2,7 +2,8 @@ import os
 import json
 import requests
 from datetime import datetime
-from config import PRODUCTS
+with open("products.json", "r", encoding="utf-8") as f:
+    PRODUCTS = json.load(f)
 
 
 BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
