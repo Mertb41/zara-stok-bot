@@ -1,12 +1,18 @@
-# Zara Stok Bot Ayarları
-
 PRODUCTS = [
     {
         "name": "Kemerli Pensli Geniş Paça Pantolon",
         "url": "https://www.zara.com/tr/tr/kemerli-pensli-genis-paca-pantolon-p02949228.html?v1=555448606",
-        "size": "XS"
-    }
+        "sizes": ["XS"]
+    },
+
+    # Yeni ürün eklemek için aşağıdaki formatı kopyala:
+    #
+    # {
+    #     "name": "Ürün adı",
+    #     "url": "Ürün linki",
+    #     "sizes": ["XS", "S"]
+    # }
 ]
 
-# Kontrol süresi (saniye)
+
 CHECK_INTERVAL = 300
