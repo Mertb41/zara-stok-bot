@@ -1,8 +1,8 @@
 import os
 import json
 import requests
-HISTORY_FILE = "stock_history.json"
 from datetime import datetime
+HISTORY_FILE = "stock_history.json"
 
 BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
