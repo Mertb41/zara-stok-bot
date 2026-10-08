@@ -2,12 +2,14 @@ import os
 import json
 import requests
 from datetime import datetime
-HISTORY_FILE = "stock_history.json"
+from config import PRODUCTS
+
 
 BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
 
-PRODUCT_URL = "https://www.zara.com/tr/tr/kemerli-pensli-genis-paca-pantolon-p02949228.html?v1=555448606"
+HISTORY_FILE = "stock_history.json"
+
 
 HEADERS = {
     "User-Agent": (
@@ -17,7 +19,9 @@ HEADERS = {
     "Accept-Language": "tr-TR,tr;q=0.9"
 }
 
+
 def telegram_gonder(mesaj):
+
     if not BOT_TOKEN or not CHAT_ID:
         print("Telegram bilgileri eksik")
         return
@@ -34,25 +38,34 @@ def telegram_gonder(mesaj):
     )
 
 
-def gecmis_kaydet(durum):
+def gecmis_kaydet(urun, beden, durum):
+
     try:
-        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+        with open(
+            HISTORY_FILE,
+            "r",
+            encoding="utf-8"
+        ) as f:
             gecmis = json.load(f)
 
     except:
         gecmis = []
 
-    kayit = {
-        "tarih": datetime.now().strftime("%d.%m.%Y %H:%M:%S"),
-        "urun": "Kemerli Pensli Geniş Paça Pantolon",
-        "beden": "XS",
-        "durum": durum
-    }
 
-    gecmis.append(kayit)
+    gecmis.append(
+        {
+            "tarih": datetime.now().strftime(
+                "%d.%m.%Y %H:%M:%S"
+            ),
+            "urun": urun,
+            "beden": beden,
+            "durum": durum
+        }
+    )
 
-    # Son 100 kaydı tut
-    gecmis = gecmis[-100:]
+
+    gecmis = gecmis[-200:]
+
 
     with open(
         HISTORY_FILE,
@@ -67,74 +80,106 @@ def gecmis_kaydet(durum):
         )
 
 
-def zara_verisi_al():
-
-    response = requests.get(
-        PRODUCT_URL,
-        headers=HEADERS,
-        timeout=30
-    )
-
-    response.raise_for_status()
-
-    return response.text
-
-
-def xs_stok_kontrol():
-
-    html = zara_verisi_al().lower()
-
-    # Zara sayfasında beden bilgisi aranıyor
-    xs_kelimesi = '"xs"' in html or "xs" in html
-
-    # Satın alınabilirlik göstergeleri
-    stok_isareti = (
-        "addtocart" in html
-        or "add to cart" in html
-        or "sepete ekle" in html
-    )
-
-    return xs_kelimesi and stok_isareti
-
-
-def main():
-
-    print("Zara XS kontrol başladı")
+def urun_kontrol(urun):
 
     try:
 
-        stok_var = xs_stok_kontrol()
+        response = requests.get(
+            urun["url"],
+            headers=HEADERS,
+            timeout=30
+        )
 
-        zaman = datetime.now().strftime("%d.%m.%Y %H:%M")
+        html = response.text.lower()
 
-        if stok_var:
-            gecmis_kaydet("XS stokta")
 
-            mesaj = (
-                "🚨 ZARA XS STOK BİLDİRİMİ 🚨\n\n"
-                "Ürün:\n"
-                "Kemerli Pensli Geniş Paça Pantolon\n\n"
-                "Beden: XS\n\n"
-                f"Kontrol: {zaman}\n\n"
-                f"{PRODUCT_URL}"
-            )
+        bulunan_bedenler = []
 
-            telegram_gonder(mesaj)
 
-            print("XS bulundu, bildirim gönderildi.")
+        for beden in urun["sizes"]:
 
-        else:
-            gecmis_kaydet("XS stokta değil")
-            print(
-                f"{zaman} - XS stokta görünmüyor."
-            )
+            if beden.lower() in html:
+
+                # Satın alma işareti kontrolü
+                if (
+                    "addtocart" in html
+                    or "add to cart" in html
+                    or "sepete ekle" in html
+                ):
+                    bulunan_bedenler.append(beden)
+
+
+        return bulunan_bedenler
+
 
     except Exception as hata:
 
         print(
-            "Kontrol hatası:",
+            urun["name"],
+            "hata:",
             hata
         )
+
+        return []
+
+
+def main():
+
+    print(
+        "Zara çoklu ürün kontrol başladı"
+    )
+
+
+    for urun in PRODUCTS:
+
+        stoklar = urun_kontrol(urun)
+
+
+        if stoklar:
+
+            for beden in stoklar:
+
+                mesaj = (
+                    "🚨 ZARA STOK BİLDİRİMİ 🚨\n\n"
+                    f"Ürün: {urun['name']}\n"
+                    f"Beden: {beden}\n\n"
+                    f"{urun['url']}"
+                )
+
+
+                telegram_gonder(mesaj)
+
+
+                gecmis_kaydet(
+                    urun["name"],
+                    beden,
+                    "Stokta"
+                )
+
+
+                print(
+                    "Stok bulundu:",
+                    urun["name"],
+                    beden
+                )
+
+
+        else:
+
+            for beden in urun["sizes"]:
+
+                gecmis_kaydet(
+                    urun["name"],
+                    beden,
+                    "Stok yok"
+                )
+
+
+                print(
+                    "Stok yok:",
+                    urun["name"],
+                    beden
+                )
 
 
 if __name__ == "__main__":
