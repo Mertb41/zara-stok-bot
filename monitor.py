@@ -17,7 +17,6 @@ HEADERS = {
     "Accept-Language": "tr-TR,tr;q=0.9"
 }
 
-
 def telegram_gonder(mesaj):
     if not BOT_TOKEN or not CHAT_ID:
         print("Telegram bilgileri eksik")
@@ -33,15 +32,15 @@ def telegram_gonder(mesaj):
         },
         timeout=20
     )
-    def gecmis_kaydet(durum):
 
+
+def gecmis_kaydet(durum):
     try:
         with open(HISTORY_FILE, "r", encoding="utf-8") as f:
             gecmis = json.load(f)
 
     except:
         gecmis = []
-
 
     kayit = {
         "tarih": datetime.now().strftime("%d.%m.%Y %H:%M:%S"),
@@ -50,13 +49,10 @@ def telegram_gonder(mesaj):
         "durum": durum
     }
 
-
     gecmis.append(kayit)
-
 
     # Son 100 kaydı tut
     gecmis = gecmis[-100:]
-
 
     with open(
         HISTORY_FILE,
