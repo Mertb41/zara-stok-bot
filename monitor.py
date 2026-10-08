@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+HISTORY_FILE = "stock_history.json"
 from datetime import datetime
 
 BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
@@ -32,6 +33,42 @@ def telegram_gonder(mesaj):
         },
         timeout=20
     )
+    def gecmis_kaydet(durum):
+
+    try:
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            gecmis = json.load(f)
+
+    except:
+        gecmis = []
+
+
+    kayit = {
+        "tarih": datetime.now().strftime("%d.%m.%Y %H:%M:%S"),
+        "urun": "Kemerli Pensli Geniş Paça Pantolon",
+        "beden": "XS",
+        "durum": durum
+    }
+
+
+    gecmis.append(kayit)
+
+
+    # Son 100 kaydı tut
+    gecmis = gecmis[-100:]
+
+
+    with open(
+        HISTORY_FILE,
+        "w",
+        encoding="utf-8"
+    ) as f:
+        json.dump(
+            gecmis,
+            f,
+            ensure_ascii=False,
+            indent=2
+        )
 
 
 def zara_verisi_al():
@@ -75,6 +112,7 @@ def main():
         zaman = datetime.now().strftime("%d.%m.%Y %H:%M")
 
         if stok_var:
+            gecmis_kaydet("XS stokta")
 
             mesaj = (
                 "🚨 ZARA XS STOK BİLDİRİMİ 🚨\n\n"
@@ -90,6 +128,7 @@ def main():
             print("XS bulundu, bildirim gönderildi.")
 
         else:
+            gecmis_kaydet("XS stokta değil")
             print(
                 f"{zaman} - XS stokta görünmüyor."
             )
