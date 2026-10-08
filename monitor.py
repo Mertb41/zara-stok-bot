@@ -89,8 +89,8 @@ def stok_kontrol():
 
 if __name__ == "__main__":
 
-    print("Zara stok takip başladı...")
+    print("Zara stok kontrol başladı...")
 
-    while True:
-        stok_kontrol()
-        time.sleep(CHECK_INTERVAL)
+    stok_kontrol()
+
+    print("Kontrol tamamlandı.")
